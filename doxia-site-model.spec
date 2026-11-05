@@ -69,6 +69,28 @@ for group, artifact, version in (
     add(dep, "version", version)
 ET.ElementTree(root).write("pom.xml", encoding="utf-8", xml_declaration=True)
 PY
+# Sisu loads @Named classes from this index. The indexer plugin is not packaged.
+python - <<'PY'
+import re
+from pathlib import Path
+root = Path("src/main/java")
+names = []
+for path in sorted(root.rglob("*.java")):
+    text = path.read_text(encoding="utf-8", errors="replace")
+    match = re.search(r"\b(?:class|interface|enum)\s+([A-Za-z0-9_]+)", text)
+    if not match:
+        continue
+    if "@Named" not in text[:match.start()]:
+        continue
+    pkg = re.search(r"(?m)^package\s+([A-Za-z0-9_.]+)\s*;", text)
+    if not pkg:
+        continue
+    names.append(pkg.group(1) + "." + match.group(1))
+if names:
+    dest = Path("src/main/resources/META-INF/sisu")
+    dest.mkdir(parents=True, exist_ok=True)
+    (dest / "javax.inject.Named").write_text("\n".join(names) + "\n", encoding="utf-8")
+PY
 
 %files -f .mfiles
 %doc LICENSE NOTICE
