@@ -1,5 +1,5 @@
 Name:		doxia-site-model
-Version:	2.0.0
+Version:	2.1.0
 Release:	1
 Summary:	Doxia site model
 Group:		Development/Java
@@ -10,6 +10,9 @@ BuildArch:	noarch
 BuildRequires:	python
 BuildRequires:	mvn(javax.inject:javax.inject)
 BuildRequires:	mvn(org.codehaus.plexus:plexus-utils)
+BuildRequires:	plexus-utils >= 3.6.2
+Requires:	plexus-utils >= 3.6.2
+BuildRequires:	mvn(org.codehaus.plexus:plexus:pom::)
 # Literal, so the first rpmbuild -bs records them before sysjar is installed.
 BuildRequires:	maven
 BuildRequires:	java-current-devel
@@ -17,9 +20,10 @@ BuildSystem:	maven
 BuildOption(install):	--file-name %{name}
 
 %description
-The Doxia site decoration model. The tag does not contain the
-generated model classes, so this package builds the Maven Central
-sources jar. XML classes come from plexus-utils.
+The Doxia site decoration model, including Mermaid diagram settings
+and external scripts. The tag ships the Modello descriptors. The
+generated model classes come from the upstream sources jar. XML
+classes come from plexus-utils.
 
 %prep
 %setup -q -c -T
@@ -58,10 +62,13 @@ add(root, "groupId", "org.apache.maven.doxia")
 add(root, "artifactId", "doxia-site-model")
 add(root, "version", "%{version}")
 add(root, "name", "Doxia Sitetools :: Site model")
+props = ET.SubElement(root, tag("properties"))
+add(props, "maven.compiler.release", "8")
+add(props, "project.build.sourceEncoding", "UTF-8")
 deps = ET.SubElement(root, tag("dependencies"))
 for group, artifact, version in (
     ("javax.inject", "javax.inject", "1"),
-    ("org.codehaus.plexus", "plexus-utils", "3.6.0"),
+    ("org.codehaus.plexus", "plexus-utils", "3.6.2"),
 ):
     dep = ET.SubElement(deps, tag("dependency"))
     add(dep, "groupId", group)
